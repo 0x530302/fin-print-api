@@ -1,0 +1,14 @@
+{
+  "name": "fin-print-api",
+  "version": "1.0.0",
+  "description": "provides a rest api for the fin exam printing service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dominik Meißner",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.10.2"
+  }
+}
