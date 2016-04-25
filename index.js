@@ -23,7 +23,6 @@ var app = express();
 app.use(bodyParser.json());
 
 app.get('/v1/course', function(req, res) {
-    //TODO: retrieve courses from db
     var courses = [
 	{
 	    id: 512,
@@ -32,6 +31,7 @@ app.get('/v1/course', function(req, res) {
 	}
     ];
 
+    //TODO: retrieve courses from db
     con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
 	if (err)
 	    return console.log(err);
@@ -49,8 +49,9 @@ app.get('/v1/course', function(req, res) {
 app.get('/v1/course/:id', function(req, res) {
     var id = req.params.id;
 
-    //TODO: verify that id is an actual integer
-    //TODO: retrieve course from db
+    // verify that id is actually a positive integer
+    if (!id.match(/[1-9][0-9]*/))
+	res.status(400).end();
 
     var course = {
 	id: id,
@@ -65,6 +66,7 @@ app.get('/v1/course/:id', function(req, res) {
 	]
     };
 
+    //TODO: retrieve course from db
     con.query('SELECT id, name FROM course WHERE id = ?', [id], function(err, rows, fields) {
 	if (err)
 	    return console.log(err);
@@ -83,15 +85,13 @@ app.get('/v1/course/:id', function(req, res) {
 	console.log(rows);
     });
 
-    if (course)
+    if (!course)
+	res.status(404).end();
+    else
 	res
 	    .set('Content-Type', 'text/json')
 	    .send(JSON.stringify(course))
 	    .status(200)
-	    .end();
-    else
-	res
-	    .status(404)
 	    .end();
 });
 
@@ -113,9 +113,7 @@ app.post('/v1/order', function(req, res) {
 	console.log('Message sent: ' + info.response);
     });
 
-    res
-	.status(201)
-	.end();
+    res.status(201).end();
 });
 
 app.listen(config.port, function() {
