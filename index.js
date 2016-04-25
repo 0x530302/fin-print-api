@@ -8,7 +8,7 @@ var config = JSON.parse(fs.readFileSync('config.json', 'UTF-8'));
 //var con = mysql.createConnection(config.db);
 //con.connect();
 //
-//connection.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
+//con.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
 //    if (err)
 //	throw err;
 //
@@ -30,7 +30,15 @@ app.get('/v1/course', function(req, res) {
 	}
     ];
 
-    res.set('Content-Type', 'text/json')
+    con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
+	if (err)
+	    throw err;
+
+	console.log(rows);
+    });
+
+    res
+	.set('Content-Type', 'text/json')
 	.send(JSON.stringify(courses))
 	.status(200)
 	.end();
@@ -38,6 +46,8 @@ app.get('/v1/course', function(req, res) {
 
 app.get('/v1/course/:id', function(req, res) {
     var id = req.params.id;
+
+    //TODO: verify that id is an actual integer
 
     //TODO: retrieve course from db
 
@@ -53,6 +63,24 @@ app.get('/v1/course/:id', function(req, res) {
 	    }
 	]
     };
+
+    con.query('SELECT id, name FROM course WHERE id = ?', [id], function(err, rows, fields) {
+	if (err)
+	    throw err;
+
+	con.query('SELECT e.id, t.name, date, l.name '
+		+ 'FROM exam AS e '
+		+ 'JOIN type AS t ON t.id = e.typeID '
+		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
+		+ 'WHERE e.courseID = ?', [id], function(err, rows, fields) {
+	    if (err)
+		throw err;
+
+	    console.log(rows);
+	});
+
+	console.log(rows);
+    });
 
     if (course)
 	res
@@ -77,5 +105,6 @@ app.post('/v1/order', function(req, res) {
 	.end();
 });
 
-app.listen(config.port);
-console.log('Magic happens on port ' + config.port);
+app.listen(config.port, function() {
+    console.log('Magic happens on port ' + config.port);
+});
