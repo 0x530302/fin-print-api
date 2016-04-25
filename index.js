@@ -3,6 +3,7 @@ var mysql = require('mysql');
 var express = require('express');
 var nodemailer = require('nodemailer');
 var bodyParser = require('body-parser');
+var ipfilter = require('express-ipfilter');
 
 var config = JSON.parse(fs.readFileSync('config.json', 'UTF-8'));
 var transporter = nodemailer.createTransport(config.mail.transport);
@@ -21,6 +22,8 @@ var transporter = nodemailer.createTransport(config.mail.transport);
 
 var app = express();
 app.use(bodyParser.json());
+app.use(ipfilter(config.filter.blacklist, {mode: 'deny'}));
+app.use(ipfilter(config.filter.whitelist, {mode: 'allow'}));
 
 app.get('/v1/course', function(req, res) {
     var courses = [
