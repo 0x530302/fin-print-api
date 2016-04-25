@@ -4,5 +4,10 @@
 	"host": "DB_HOST",
 	"user": "DB_USER",
 	"password": "DB_PASS"
+    },
+    "mail": {
+	"transport": "smtp://smtp.example.com",
+	"sender": "alice@example.com",
+	"recipient": "bob@example.com"
     }
 }

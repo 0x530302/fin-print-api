@@ -1,9 +1,11 @@
 var fs = require('fs');
 var mysql = require('mysql');
 var express = require('express');
+var nodemailer = require('nodemailer');
 var bodyParser = require('body-parser');
 
 var config = JSON.parse(fs.readFileSync('config.json', 'UTF-8'));
+var transporter = nodemailer.createTransport(config.mail.transport);
 
 //var con = mysql.createConnection(config.db);
 //con.connect();
@@ -32,7 +34,7 @@ app.get('/v1/course', function(req, res) {
 
     con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
 	if (err)
-	    throw err;
+	    return console.log(err);
 
 	console.log(rows);
     });
@@ -48,7 +50,6 @@ app.get('/v1/course/:id', function(req, res) {
     var id = req.params.id;
 
     //TODO: verify that id is an actual integer
-
     //TODO: retrieve course from db
 
     var course = {
@@ -66,7 +67,7 @@ app.get('/v1/course/:id', function(req, res) {
 
     con.query('SELECT id, name FROM course WHERE id = ?', [id], function(err, rows, fields) {
 	if (err)
-	    throw err;
+	    return console.log(err);
 
 	con.query('SELECT e.id, t.name, date, l.name '
 		+ 'FROM exam AS e '
@@ -74,7 +75,7 @@ app.get('/v1/course/:id', function(req, res) {
 		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
 		+ 'WHERE e.courseID = ?', [id], function(err, rows, fields) {
 	    if (err)
-		throw err;
+		return console.log(err);
 
 	    console.log(rows);
 	});
@@ -99,6 +100,18 @@ app.post('/v1/order', function(req, res) {
 
     //TODO: validate body
     //TODO: send mail
+
+    transporter.sendMail({
+	from: config.mail.sender,
+	to: config.mail.recipient,
+	subject: '',
+	text: ''
+    }, function(err, info) {
+	if (err)
+	    return console.log(err);
+
+	console.log('Message sent: ' + info.response);
+    });
 
     res
 	.status(201)
