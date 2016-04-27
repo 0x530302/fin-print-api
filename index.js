@@ -3,6 +3,7 @@ var mysql = require('mysql');
 var express = require('express');
 var nodemailer = require('nodemailer');
 var bodyParser = require('body-parser');
+var expressBrute = require('express-brute');
 var ipfilter = require('express-ipfilter');
 
 var config = JSON.parse(fs.readFileSync('config.json', 'UTF-8'));
@@ -19,6 +20,13 @@ var transporter = nodemailer.createTransport(config.mail.transport);
 //});
 //
 //con.end();
+
+var bruteStore = new ExpressBrute.MemoryStore();
+var bruteProtect = new ExpressBrute(store, {
+    freeRetries: 2,
+    minWait: 30*60*1000,
+    maxWait: 60*60*1000
+});
 
 var app = express();
 app.use(bodyParser.json());
@@ -98,7 +106,7 @@ app.get('/v1/course/:id', function(req, res) {
 	    .end();
 });
 
-app.post('/v1/order', function(req, res) {
+app.post('/v1/order', bruteProtect.prevent, function(req, res) {
     console.log(req.body);
 
     //TODO: validate body
