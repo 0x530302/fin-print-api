@@ -1,0 +1,125 @@
+#%RAML 0.8
+---
+#===============================================================
+#  References:
+#    - RAML Specification - http://raml.org/spec.html
+#    - RAML Projects - http://raml.org/projects.html
+#    - RAML Tools  - http://www.apihub.com/raml-tools
+#===============================================================
+title: FIN Print API
+version: v1
+baseUri: http://print-api.example.com:8080/v1/
+mediaType:  application/json
+protocols: [ HTTP ]
+
+#===============================================================
+# API resource definitions
+#===============================================================                        
+          
+/course:
+  uriParameters:
+  displayName: Course
+  description: A collection of all available courses
+  get:
+    description: Get a list of all available courses and the corresponding document count
+    responses:
+      200:
+        body:
+          application/json: 
+              example: |
+                [
+                    {
+                        "id": 815,
+                        "name": "Introduction to advanced examples",
+                        "count": 1
+                    }
+                ]
+                          
+  #---------------------------------------------------------------
+  # Nested resource representing a  single product - name parameter as part of the path.
+  #---------------------------------------------------------------
+  /{id}: 
+    description: | # Retrieve a specific product using its ID.
+    uriParameters:
+     id:
+       displayName: id
+       description: The ID of the course
+       type: integer
+    get:
+      description: Get a single course and all corresponding documents
+      responses:
+        404:
+          body:
+            application/json: 
+              example: |
+                { "message": "Course not found" }
+        200:
+          body:
+            application/json: 
+              example: |
+                {
+                    "id": 815,
+                    "name": "Introduction to advanced examples",
+                    "documents": [
+                        {
+                            "id": 812,
+                            "type": "written exam",
+                            "date": "2011-05-14",
+                            "lecturer": "Jane Doe"
+                        }
+                    ]
+                }
+
+/order:
+  uriParameters:
+  displayName: Order
+  description: A collection of orders
+  post:
+    description: Order a print
+    body:
+      application/json:
+        schema: |
+          {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Order",
+            "description": "A print' order",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The orderer's name",
+                    "type": "string"
+                },
+                "mail": {
+                    "descrption": "The orderer's e-mail address",
+                    "type": "string",
+                    "format": "email"
+                },
+                "documents": {
+                    "descrption": "The array of ordered document IDs",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                }
+            },
+            "required": ["name", "mail", "documents"]
+          }
+        example: |
+          {
+            "name": "John Doe",
+            "mail": "john.doe@example.com",
+            "documents": [812]
+          }
+    responses:
+      201:
+        body:
+          application/json:
+              example: |
+                { "message": "Order successful" }
+      401:
+        body:
+          application/json:
+              example: |
+                { "message": "e-mail address invalid" }
