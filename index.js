@@ -98,9 +98,11 @@ app.post('/v1/order', bruteProtect.prevent, function(req, res) {
 	res.status(400).end();
 
     req.body.documents.forEach(function(id) {
-	if (!validator.isInt(id))
-	    res.status(400).end();
+        if ((!isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10))) === false)
+	    if (!validator.isInt(id))
+		res.status(400).end();
     });
+
     
     con.query('SELECT e.id, t.name, e.date, l.name '
 	    + 'FROM exam AS e'
