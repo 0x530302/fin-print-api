@@ -65,7 +65,7 @@ app.get('/v1/course/:id', function(req, res) {
 	    documents: []
 	};
 
-	con.query('SELECT e.id, t.name, e.date, l.name '
+	con.query('SELECT e.id, t.name as type, e.date, l.name as lecturer '
 		+ 'FROM exam AS e '
 		+ 'JOIN type AS t ON t.id = e.typeID '
 		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
@@ -78,7 +78,7 @@ app.get('/v1/course/:id', function(req, res) {
 		    id: row.id,
 		    type: row.type,
 		    date: row.date,
-		    lecturer: row.name
+		    lecturer: row.lecturer
 		});
 	    });
 
@@ -93,19 +93,17 @@ app.get('/v1/course/:id', function(req, res) {
 
 app.post('/v1/order', bruteProtect.prevent, function(req, res) {
     if (!validator.isEmail(req.body.mail)
-	|| !validator.isAlpha(req.body.name)
 	|| !Array.isArray(req.body.documents))
 	res.status(400).end();
 
     req.body.documents.forEach(function(id) {
-        if ((!isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10))) === false)
+        if ((!isNaN(id) && parseInt(Number(id)) == id && !isNaN(parseInt(id, 10))) === false)
 	    if (!validator.isInt(id))
 		res.status(400).end();
     });
 
-    
-    con.query('SELECT e.id, t.name, e.date, l.name '
-	    + 'FROM exam AS e'
+    con.query('SELECT e.id, t.name as type, e.date, l.name as lecturer '
+	    + 'FROM exam AS e '
 	    + 'JOIN type AS t ON t.id = e.typeID '
 	    + 'JOIN lecturer AS l ON l.id = e.lecturerID '
 	    + 'WHERE e.id IN (?)', [req.body.documents], function(err, rows, fields) {
@@ -127,7 +125,7 @@ app.post('/v1/order', bruteProtect.prevent, function(req, res) {
 	    }).join("\n")
 	}, function(err, info) {
 	    if (err)
-		return console.log(err);
+		return res.status(500).end();
 
 	    console.log('Message sent: ' + info.response);
 	});
