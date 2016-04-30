@@ -1,6 +1,7 @@
 var fs = require('fs');
 var mysql = require('mysql');
 var express = require('express');
+var validator = require('validator');
 var nodemailer = require('nodemailer');
 var bodyParser = require('body-parser');
 var expressBrute = require('express-brute');
@@ -48,7 +49,7 @@ app.get('/v1/course/:id', function(req, res) {
     var id = req.params.id;
 
     // verify that id is actually a positive integer
-    if (!id.match(/[1-9][0-9]*/))
+    if (!validator.isInt(id))
 	res.status(400).end();
 
     con.query('SELECT id, name FROM course WHERE id = ?', [id], function(err, rows, fields) {
@@ -64,7 +65,7 @@ app.get('/v1/course/:id', function(req, res) {
 	    documents: []
 	};
 
-	con.query('SELECT e.id, t.name, date, l.name '
+	con.query('SELECT e.id, t.name, e.date, l.name '
 		+ 'FROM exam AS e '
 		+ 'JOIN type AS t ON t.id = e.typeID '
 		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
@@ -77,7 +78,7 @@ app.get('/v1/course/:id', function(req, res) {
 		    id: row.id,
 		    type: row.type,
 		    date: row.date,
-		    lecturer: row.lecturer
+		    lecturer: row.name
 		});
 	    });
 
@@ -91,24 +92,46 @@ app.get('/v1/course/:id', function(req, res) {
 });
 
 app.post('/v1/order', bruteProtect.prevent, function(req, res) {
-    console.log(req.body);
+    if (!validator.isEmail(req.body.mail)
+	|| !validator.isAlpha(req.body.name)
+	|| !Array.isArray(req.body.documents))
+	res.status(400).end();
 
-    //TODO: validate body
-    //TODO: send mail
-
-    transporter.sendMail({
-	from: config.mail.sender,
-	to: config.mail.recipient,
-	subject: '',
-	text: ''
-    }, function(err, info) {
-	if (err)
-	    return console.log(err);
-
-	console.log('Message sent: ' + info.response);
+    req.body.documents.forEach(function(document) {
+	if (!validator.isInt(id))
+	    res.status(400).end();
     });
+    
+    con.query('SELECT e.id, t.name, e.date, l.name '
+	    + 'FROM exam AS e'
+	    + 'JOIN type AS t ON t.id = e.typeID '
+	    + 'JOIN lecturer AS l ON l.id = e.lecturerID '
+	    + 'WHERE e.id IN (?)', [req.body.documents], function(err, rows, fields) {
+	if (err)
+	    return res.status(500).end();
 
-    res.status(201).end();
+	transporter.sendMail({
+	    from: config.mail.sender,
+	    replyTo: req.body.mail,
+	    to: config.mail.recipient,
+	    subject: 'Online-Bestellung von "' + req.body.name + '"',
+	    text: rows.map(function(row) {
+		return ' * ' + [
+		    row.id,
+		    row.type,
+		    row.date,
+		    row.lecturer
+		].join(' ');
+	    }).join("\n")
+	}, function(err, info) {
+	    if (err)
+		return console.log(err);
+
+	    console.log('Message sent: ' + info.response);
+	});
+
+	res.status(201).end();
+    });
 });
 
 app.listen(config.port, function() {
