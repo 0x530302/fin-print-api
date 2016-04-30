@@ -31,20 +31,19 @@ var app = express();
 app.use(bodyParser.json());
 
 app.get('/v1/course', function(req, res) {
-    var courses = [
-	{
-	    id: 512,
-	    name: "Example Course",
-	    count: 1
-	}
-    ];
+    var courses = [];
 
-    //TODO: retrieve courses from db
     con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
 	if (err)
 	    return console.log(err);
 
-	console.log(rows);
+	rows.forEach(function(row) {
+	    courses.push({
+		id: row.id,
+		name: row.name,
+		count: row.count
+	    });
+	});
     });
 
     res
@@ -61,23 +60,18 @@ app.get('/v1/course/:id', function(req, res) {
     if (!id.match(/[1-9][0-9]*/))
 	res.status(400).end();
 
-    var course = {
-	id: id,
-	name: "Example Course",
-	documents: [
-	    {
-		id: 111,
-		type: "Klausur",
-		date: "2000-03-21",
-		lecturer: "Example Lecturer"
-	    }
-	]
-    };
-
-    //TODO: retrieve course from db
     con.query('SELECT id, name FROM course WHERE id = ?', [id], function(err, rows, fields) {
 	if (err)
-	    return console.log(err);
+	    return res.status(500).end();
+
+	if (!rows || !(rows.length > 0))
+	    return res.status(404).end();
+
+	var course = {
+	    id: rows[0].id,
+	    name: rows[0].name,
+	    documents: []
+	};
 
 	con.query('SELECT e.id, t.name, date, l.name '
 		+ 'FROM exam AS e '
@@ -85,22 +79,24 @@ app.get('/v1/course/:id', function(req, res) {
 		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
 		+ 'WHERE e.courseID = ?', [id], function(err, rows, fields) {
 	    if (err)
-		return console.log(err);
+		return res.status(500).end();
 
-	    console.log(rows);
+	    rows.forEach(function(row) {
+		course.documents.push({
+		    id: row.id,
+		    type: row.type,
+		    date: row.date,
+		    lecturer: row.lecturer
+		});
+	    });
+
+	    res
+		.set('Content-Type', 'text/json')
+		.send(JSON.stringify(course))
+		.status(200)
+		.end();
 	});
-
-	console.log(rows);
     });
-
-    if (!course)
-	res.status(404).end();
-    else
-	res
-	    .set('Content-Type', 'text/json')
-	    .send(JSON.stringify(course))
-	    .status(200)
-	    .end();
 });
 
 app.post('/v1/order', bruteProtect.prevent, function(req, res) {
