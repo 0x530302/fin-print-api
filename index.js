@@ -11,15 +11,6 @@ var transporter = nodemailer.createTransport(config.mail.transport);
 var con = mysql.createConnection(config.db);
 con.connect();
 
-//con.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
-//    if (err)
-//	throw err;
-//
-//    console.log('The solution is: ', rows[0].solution);
-//});
-//
-//con.end();
-
 var bruteStore = new expressBrute.MemoryStore();
 var bruteProtect = new expressBrute(bruteStore, {
     freeRetries: 2,
@@ -35,7 +26,7 @@ app.get('/v1/course', function(req, res) {
 
     con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
 	if (err)
-	    return console.log(err);
+	    return res.status(500).end();
 
 	rows.forEach(function(row) {
 	    courses.push({
@@ -44,13 +35,13 @@ app.get('/v1/course', function(req, res) {
 		count: row.count
 	    });
 	});
-    });
 
-    res
-	.set('Content-Type', 'text/json')
-	.send(JSON.stringify(courses))
-	.status(200)
-	.end();
+	res
+	    .set('Content-Type', 'text/json')
+	    .send(JSON.stringify(courses))
+	    .status(200)
+	    .end();
+    });
 });
 
 app.get('/v1/course/:id', function(req, res) {
