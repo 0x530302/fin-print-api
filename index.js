@@ -97,7 +97,7 @@ app.post('/v1/order', bruteProtect.prevent, function(req, res) {
 	|| !Array.isArray(req.body.documents))
 	res.status(400).end();
 
-    req.body.documents.forEach(function(document) {
+    req.body.documents.forEach(function(id) {
 	if (!validator.isInt(id))
 	    res.status(400).end();
     });
