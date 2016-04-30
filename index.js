@@ -4,14 +4,13 @@ var express = require('express');
 var nodemailer = require('nodemailer');
 var bodyParser = require('body-parser');
 var expressBrute = require('express-brute');
-var ipfilter = require('express-ipfilter');
 
 var config = JSON.parse(fs.readFileSync('config.json', 'UTF-8'));
 var transporter = nodemailer.createTransport(config.mail.transport);
 
-//var con = mysql.createConnection(config.db);
-//con.connect();
-//
+var con = mysql.createConnection(config.db);
+con.connect();
+
 //con.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
 //    if (err)
 //	throw err;
@@ -21,8 +20,8 @@ var transporter = nodemailer.createTransport(config.mail.transport);
 //
 //con.end();
 
-var bruteStore = new ExpressBrute.MemoryStore();
-var bruteProtect = new ExpressBrute(store, {
+var bruteStore = new expressBrute.MemoryStore();
+var bruteProtect = new expressBrute(bruteStore, {
     freeRetries: 2,
     minWait: 30*60*1000,
     maxWait: 60*60*1000
@@ -30,8 +29,6 @@ var bruteProtect = new ExpressBrute(store, {
 
 var app = express();
 app.use(bodyParser.json());
-app.use(ipfilter(config.filter.blacklist, {mode: 'deny'}));
-app.use(ipfilter(config.filter.whitelist, {mode: 'allow'}));
 
 app.get('/v1/course', function(req, res) {
     var courses = [

@@ -1,10 +1,7 @@
 {
     "port": 8080,
-    "filter": {
-	"whitelist": "1.2.3.4/16",
-	"blacklist": "0.0.0.0/32"
-    },
     "db": {
+	"database": "DB_NAME",
 	"host": "DB_HOST",
 	"user": "DB_USER",
 	"password": "DB_PASS"
