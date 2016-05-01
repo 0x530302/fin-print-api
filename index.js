@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 app.get('/v1/course', function(req, res) {
     var courses = [];
 
-    con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name', function(err, rows, fields) {
+    con.query('SELECT c.id, c.name, COUNT(*) AS count FROM course AS c LEFT JOIN exam AS e ON c.id = e.courseID GROUP BY c.id, c.name ORDER BY c.name', function(err, rows, fields) {
 	if (err)
 	    return res.status(500).end();
 
@@ -45,7 +45,7 @@ app.get('/v1/course', function(req, res) {
     });
 });
 
-app.get('/v1/course/:id/:type', function(req, res) {
+app.get('/v1/course/:id/:type?', function(req, res) {
     var id = req.params.id;
     var type = req.params.type;
 
@@ -75,7 +75,7 @@ app.get('/v1/course/:id/:type', function(req, res) {
 		return res.status(500).end();
 
 	    rows.forEach(function(row) {
-		if (type && type == row.type) {
+		if (typeof type === 'undefined' || type == row.type) {
 		    course.documents.push({
 			id: row.id,
 			type: row.type,
@@ -109,7 +109,7 @@ app.post('/v1/order', bruteProtect.prevent, function(req, res) {
 	    + 'FROM exam AS e '
 	    + 'JOIN type AS t ON t.id = e.typeID '
 	    + 'JOIN lecturer AS l ON l.id = e.lecturerID '
-	    + 'WHERE e.id IN (?)', [req.body.documents], function(err, rows, fields) {
+	    + 'WHERE e.id IN (?) ORDER BY e.date', [req.body.documents], function(err, rows, fields) {
 	if (err)
 	    return res.status(500).end();
 
