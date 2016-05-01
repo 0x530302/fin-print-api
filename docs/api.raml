@@ -38,13 +38,17 @@ protocols: [ HTTP ]
   #---------------------------------------------------------------
   # Nested resource representing a  single product - name parameter as part of the path.
   #---------------------------------------------------------------
-  /{id}: 
+  /{id}/{type}: 
     description: | # Retrieve a specific product using its ID.
     uriParameters:
      id:
        displayName: id
        description: The ID of the course
        type: integer
+     type:
+       displayName: type
+       description: Only return documents of the specified type
+       type: string
     get:
       description: Get a single course and all corresponding documents
       responses:

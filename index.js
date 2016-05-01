@@ -14,7 +14,7 @@ con.connect();
 
 var bruteStore = new expressBrute.MemoryStore();
 var bruteProtect = new expressBrute(bruteStore, {
-    freeRetries: 2,
+    freeRetries: 1,
     minWait: 30*60*1000,
     maxWait: 60*60*1000
 });
@@ -45,8 +45,9 @@ app.get('/v1/course', function(req, res) {
     });
 });
 
-app.get('/v1/course/:id', function(req, res) {
+app.get('/v1/course/:id/:type', function(req, res) {
     var id = req.params.id;
+    var type = req.params.type;
 
     // verify that id is actually a positive integer
     if (!validator.isInt(id))
@@ -74,12 +75,14 @@ app.get('/v1/course/:id', function(req, res) {
 		return res.status(500).end();
 
 	    rows.forEach(function(row) {
-		course.documents.push({
-		    id: row.id,
-		    type: row.type,
-		    date: row.date,
-		    lecturer: row.lecturer
-		});
+		if (type && type == row.type) {
+		    course.documents.push({
+			id: row.id,
+			type: row.type,
+			date: row.date,
+			lecturer: row.lecturer
+		    });
+		}
 	    });
 
 	    res
