@@ -70,7 +70,7 @@ app.get('/v1/course/:id/:type?', function(req, res) {
 		+ 'FROM exam AS e '
 		+ 'JOIN type AS t ON t.id = e.typeID '
 		+ 'JOIN lecturer AS l ON l.id = e.lecturerID '
-		+ 'WHERE e.courseID = ?', [id], function(err, rows, fields) {
+		+ 'WHERE e.courseID = ? ORDER BY e.date', [id], function(err, rows, fields) {
 	    if (err)
 		return res.status(500).end();
 
